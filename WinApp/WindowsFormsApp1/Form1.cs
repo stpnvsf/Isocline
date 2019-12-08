@@ -15,7 +15,6 @@ namespace WindowsFormsApp1
    
     public partial class Form1 : Form
     {
-        private SimpleOpenGlControl AnT;
 
         //y' =  y - x^2 - исходное уравнение
         //k = y - x^2
@@ -24,34 +23,37 @@ namespace WindowsFormsApp1
         {
             return Math.Pow(x, 2) + k;
         }
+        private SimpleOpenGlControl AnT;
+        List<double> coordinatesX = new List<double>();
+        List<double> coordinatesY = new List<double>();
         //result расчитывает координаты точек интегральной кривой для заданных начальных условий (x0,y0)
-        private List<double> result(double x0, double y0)
+        private void result(double x0, double y0)
         {
-            List<double> coordinates = new List<double>();
             double k;
             double y, y1 = y0;
             if (x0 < 4)
             {
-                for (double i = x0; i <= 4; i += 0.25)
+                for (double j = x0; j <= 4; j += 0.25)
                 {
-                    k = y1 - Math.Pow(i, 2);//k = y1 - x^2 - найдем угловой коэффициент 
-                    y = i * k;//найдем y для наденного k
-                    coordinates.Add(y);//добавляем в список, хранящий координаты 
+                    k = y1 - Math.Pow(j, 2);//k = y1 - x^2 - найдем угловой коэффициент 
+                    y = j * k+y1;//найдем y для наденного k
+                    coordinatesY.Add(y);//добавляем в список, хранящий координаты 
+                    coordinatesX.Add(j);
                     y1 = y;//старому значению y1 присвоим новое значение у
                 }
             }
             else//в случае если x0 больше 4
             {
                 //обратный ход 
-                for (double i = x0; i >= -4; i -= 0.25)
+                for (double j = x0; j >= -4; j -= 0.25)
                 {
-                    k = y1 - Math.Pow(i, 2);
-                    y = (i - k) * k;
-                    coordinates.Add(y);
+                    k = y1 - Math.Pow(j, 2);
+                    y = j * k + y1;
+                    coordinatesY.Add(y);
+                    coordinatesX.Add(j);
                     y1 = y;
                 }
             }
-            return coordinates;
         }
 
         public Form1()
@@ -78,8 +80,8 @@ namespace WindowsFormsApp1
 
 
         public void print()// в методе print происходит отрисовка системы координат и решения уравнения
-        {
-            Gl.glColor3f(0.0f, 1.0f, 0.0f);
+        { 
+            Gl.glColor3f(0.0f, 0.0f, 1.0f);
             
             //отрисовываем систему координат
             Gl.glBegin(Gl.GL_LINES);
@@ -92,7 +94,7 @@ namespace WindowsFormsApp1
             Gl.glEnd();
             
             //y = x^2 + k, k = -4, ....4 для каждого k рисуем график
-            Gl.glColor3f(1.0f, 0.0f, 1.0f);
+            Gl.glColor3f(0.0f, 1.0f, 0.0f);
             for (double k = -4; k <= 4; k += 0.5)
             {
                 Gl.glBegin(Gl.GL_LINE_STRIP);
@@ -102,44 +104,39 @@ namespace WindowsFormsApp1
                 }
                 Gl.glEnd();
             }
-            //for (double k = -4; k <= 4; k += 0.5)
-            //{
-            //    Gl.glBegin(Gl.GL_LINES);
-            //    for (double j = -4; j <= 4; j += 0.3)
-            //    {
-            //        Gl.glVertex2d(j - 0.1, k * (j - 0.1) + y(j, k));
-            //        Gl.glVertex2d(j + 0.1, k * (j + 0.1) + y(j, k));
 
-            //    }
-            //    Gl.glEnd();
-            //}
-
-            // u, w  - задаем начальное условие
-            double u = -1;
-            double w = 1;
-            List<double> res = result(u, w);//получаем список координат точек интегральной кривой 
-                                            //для начального условия (u,w)
-            Gl.glColor3f(1.0f, 0.0f, 0.0f);
-            Gl.glBegin(Gl.GL_LINE_STRIP);
-            foreach(double r in res)
+            Gl.glColor3f(0.0f, 1.0f, 0.0f);
+            Gl.glBegin(Gl.GL_LINES);
+            for (double i = -2; i <= 2; i += 0.5)
             {
-                Gl.glVertex2d(u,r);//для каждго r из res рисуем точку 
-                u += 0.25;//прибавляем шаг
+                for (double j = -4; j <= 4; j += 0.1)
+                {
+                    Gl.glVertex2d(j - 0.1, Math.Pow(j, 2) + i + i * (- 0.1));//отрисовка изоклин
+                    Gl.glVertex2d(j + 0.1, Math.Pow(j, 2) + i + i * 0.1);    
+                }
             }
             Gl.glEnd();
-            
+            // u, w  - задаем начальное условие
+            double u = -0.9;
+            double w = 1;
+            coordinatesY.Clear();
+            coordinatesX.Clear();
+            result(u, w);//получаем список координат точек интегральной кривой 
+                         //для начального условия (u,w)
+
+            Gl.glColor3f(1.0f, 0.0f, 0.0f);
+            Gl.glLineWidth(2);
+            Gl.glBegin(Gl.GL_LINE_STRIP);
+            for (int i = 0; i < coordinatesY.Count();i++)
+            {
+                Gl.glVertex2d(coordinatesX[i],coordinatesY[i]);//Отрисовка интегральной кривой
+            }
+            Gl.glEnd();
+
             AnT.Invalidate();       
-        }
-        private void Form1_Load_1(object sender, EventArgs e)
-        {
 
         }
-
-        private void simpleOpenGlControl1_Load_1(object sender, EventArgs e)
-        {
-
-        }
-   
+        
         private void InitializeComponent()
         {
             this.AnT = new Tao.Platform.Windows.SimpleOpenGlControl();
@@ -160,14 +157,22 @@ namespace WindowsFormsApp1
             this.AnT.Size = new System.Drawing.Size(497, 431);
             this.AnT.StencilBits = ((byte)(0));
             this.AnT.TabIndex = 0;
+            this.AnT.Load += new System.EventHandler(this.AnT_Load);
             // 
             // Form1
             // 
-            this.ClientSize = new System.Drawing.Size(560, 455);
+            this.ClientSize = new System.Drawing.Size(527, 455);
             this.Controls.Add(this.AnT);
             this.Name = "Form1";
             this.ResumeLayout(false);
 
         }
+
+        private void AnT_Load(object sender, EventArgs e)
+        {
+
+        }
+
+      
     }
 }
