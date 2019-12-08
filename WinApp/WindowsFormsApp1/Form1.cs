@@ -18,7 +18,7 @@ namespace WindowsFormsApp1
 
         //y' =  y - x^2 - исходное уравнение
         //k = y - x^2
-        //y = x^2 + k, k = -4, .... 4 
+        //y = x^2 + k, k = -4, ... 4 
         private double y(double x, double k)
         {
             return Math.Pow(x, 2) + k;
